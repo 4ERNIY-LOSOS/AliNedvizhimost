@@ -1,0 +1,71 @@
+<UserControl x:Class="AliNedvizhimostApp.Views.PropertyDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AliNedvizhimostApp.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800"
+             Background="#F0F2F5">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Back Button and Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Button Content="&lt; Назад" Style="{StaticResource SecondaryButton}" Command="{Binding GoBackCommand}"/>
+            <TextBlock Text="{Binding SelectedProperty.Title}" FontSize="28" FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
+        </StackPanel>
+
+        <!-- Property Details -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Background="White" CornerRadius="5" Padding="25">
+                    <StackPanel>
+                        <!-- Price -->
+                        <TextBlock Text="{Binding SelectedProperty.Price, StringFormat='C', ConverterCulture='ru-RU'}" 
+                                   FontSize="32" FontWeight="Bold" Foreground="#007ACC" Margin="0,0,0,15"/>
+
+                        <!-- Contact Seller Button -->
+                        <Button Content="Связаться с продавцом" 
+                                Command="{Binding ContactSellerCommand}" 
+                                Style="{StaticResource PrimaryButton}" 
+                                HorizontalAlignment="Left" Margin="0,0,0,20"
+                                Visibility="{Binding ContactSellerCommand.CanExecute, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                        <!-- Parameters Section -->
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock Text="Основные параметры" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Адрес:" FontWeight="SemiBold" Grid.Row="0" Grid.Column="0" Margin="0,0,10,5"/>
+                                <TextBlock Text="{Binding SelectedProperty.Address}" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"/>
+
+                                <TextBlock Text="Общая площадь:" FontWeight="SemiBold" Grid.Row="1" Grid.Column="0" Margin="0,0,10,5"/>
+                                <TextBlock Text="{Binding SelectedProperty.Area, StringFormat='{}{0} м²'}" Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"/>
+
+                                <TextBlock Text="Количество комнат:" FontWeight="SemiBold" Grid.Row="2" Grid.Column="0" Margin="0,0,10,5"/>
+                                <TextBlock Text="{Binding SelectedProperty.Rooms, StringFormat='{}{0} комн.'}" Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Description -->
+                        <TextBlock Text="Описание" FontSize="20" FontWeight="Bold" Margin="0,20,0,10"/>
+                        <TextBlock Text="{Binding SelectedProperty.Description}" TextWrapping="Wrap" FontSize="16" LineHeight="24"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

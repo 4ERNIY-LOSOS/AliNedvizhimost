@@ -1,0 +1,44 @@
+<Window x:Class="AliNedvizhimostApp.Views.ShellWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AliNedvizhimostApp"
+        mc:Ignorable="d"
+        Title="Ali Nedvizhimost" Height="720" Width="1080"
+        WindowState="Maximized">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button Command="{Binding GoToAdminPanelCommand}"
+                    Content="Админ-панель"
+                    Margin="0,0,10,0">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsAdmin}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <StackPanel Visibility="{Binding CurrentUser, Converter={StaticResource NullToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding GoToMessagesCommand}"
+                            Content="Сообщения"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,10,0"/>
+                    <Button Command="{Binding GoToProfileCommand}" 
+                            Content="Профиль"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0,0,10,0"/>
+                    <Button Command="{Binding LogoutCommand}" 
+                            Content="Выход"
+                            Style="{StaticResource SecondaryButton}"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+        <ContentControl Content="{Binding CurrentViewModel}"/>
+    </DockPanel>
+</Window>

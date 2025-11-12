@@ -1,0 +1,45 @@
+<UserControl x:Class="AliNedvizhimostApp.Views.SendMessageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border Style="{StaticResource Container.Card}" MinWidth="450">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Отправить сообщение продавцу" Style="{StaticResource Text.H2}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                <TextBlock Grid.Row="1" Text="{Binding Property.Title}" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="2" Text="{Binding Property.Address}" Style="{StaticResource Text.Subtle}" Margin="0,0,0,15"/>
+
+                <TextBlock Grid.Row="3" Text="Ваше сообщение:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBox Grid.Row="4" Text="{Binding MessageContent, UpdateSourceTrigger=PropertyChanged}" 
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto" Margin="0,0,0,15"/>
+
+                <TextBlock Grid.Row="5" Text="{Binding ErrorMessage}" Foreground="{StaticResource Brush.Destructive}" Margin="0,0,0,5" TextWrapping="Wrap"/>
+                <TextBlock Grid.Row="6" Text="{Binding InfoMessage}" Foreground="{StaticResource Brush.Accent.Primary}" Margin="0,0,0,15" TextWrapping="Wrap"/>
+
+                <Grid Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="Отправить" Command="{Binding SendMessageCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,5,0" HorizontalAlignment="Stretch"/>
+                    <Button Grid.Column="1" Content="Отмена" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0" HorizontalAlignment="Stretch"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
