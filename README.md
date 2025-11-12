@@ -71,9 +71,9 @@
 Для входа в систему можно использовать следующие тестовые аккаунты, которые создаются скриптом `seed_database.sql`:
 
 ### Аккаунт администратора
--   **Email:** `admin@alinadvizhimost.com`
--   **Пароль:** `password`
+-   **Email:** `admin@gmail.com`
+-   **Пароль:** `admin`
 
 ### Аккаунт обычного пользователя
--   **Email:** `user@alinadvizhimost.com`
--   **Пароль:** `password`
+-   **Email:** `user@gmail.com`
+-   **Пароль:** `user`

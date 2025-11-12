@@ -29,25 +29,48 @@ GO
 PRINT 'Users table created successfully.';
 GO
 
--- 2. Properties Table
-CREATE TABLE Properties (
-    Id INT PRIMARY KEY IDENTITY(1,1),
+-- 2. PropertyInfo Table
+CREATE TABLE PropertyInfo (
+    PropertyId INT PRIMARY KEY IDENTITY(1,1),
     Title NVARCHAR(255) NOT NULL,
     Address NVARCHAR(500) NOT NULL,
     Price DECIMAL(18, 2) NOT NULL,
     Area FLOAT NOT NULL,
     Rooms INT NOT NULL,
-    Description NVARCHAR(MAX),
-    UserId INT NOT NULL,
-    Status NVARCHAR(50) NOT NULL DEFAULT N'Активно',
-    CONSTRAINT FK_Properties_Users FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+    Description NVARCHAR(MAX)
 );
 GO
 
-PRINT 'Properties table created successfully.';
+PRINT 'PropertyInfo table created successfully.';
 GO
 
--- 3. Messages Table
+-- 3. PropertyStatus Table
+CREATE TABLE PropertyStatus (
+    PropertyStatusId INT PRIMARY KEY IDENTITY(1,1),
+    PropertyId INT NOT NULL,
+    Status NVARCHAR(50) NOT NULL DEFAULT N'Активно',
+    LastUpdatedDate DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_PropertyStatus_PropertyInfo FOREIGN KEY (PropertyId) REFERENCES PropertyInfo(PropertyId) ON DELETE CASCADE
+);
+GO
+
+PRINT 'PropertyStatus table created successfully.';
+GO
+
+-- 4. PropertyOwner Table
+CREATE TABLE PropertyOwner (
+    PropertyOwnerId INT PRIMARY KEY IDENTITY(1,1),
+    PropertyId INT NOT NULL,
+    UserId INT NOT NULL,
+    CONSTRAINT FK_PropertyOwner_PropertyInfo FOREIGN KEY (PropertyId) REFERENCES PropertyInfo(PropertyId) ON DELETE CASCADE,
+    CONSTRAINT FK_PropertyOwner_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+GO
+
+PRINT 'PropertyOwner table created successfully.';
+GO
+
+-- 5. Messages Table
 CREATE TABLE Messages (
     MessageId INT PRIMARY KEY IDENTITY(1,1),
     SenderId INT NOT NULL,
@@ -57,7 +80,7 @@ CREATE TABLE Messages (
     Timestamp DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Messages_Sender FOREIGN KEY (SenderId) REFERENCES Users(UserId),
     CONSTRAINT FK_Messages_Receiver FOREIGN KEY (ReceiverId) REFERENCES Users(UserId),
-    CONSTRAINT FK_Messages_Property FOREIGN KEY (PropertyId) REFERENCES Properties(Id) ON DELETE CASCADE
+    CONSTRAINT FK_Messages_Property FOREIGN KEY (PropertyId) REFERENCES PropertyInfo(PropertyId) ON DELETE CASCADE
 );
 GO
 

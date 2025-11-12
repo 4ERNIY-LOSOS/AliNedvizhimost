@@ -198,7 +198,7 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "DELETE FROM Properties WHERE Id = @PropertyId;";
+                string sql = "DELETE FROM PropertyInfo WHERE PropertyId = @PropertyId;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@PropertyId", propertyId);
@@ -221,7 +221,20 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "SELECT Id, Title, Address, Price, Area, Rooms, Description, UserId, Status FROM Properties;";
+                string sql = @"
+                    SELECT 
+                        pi.PropertyId AS Id, 
+                        pi.Title, 
+                        pi.Address, 
+                        pi.Price, 
+                        pi.Area, 
+                        pi.Rooms, 
+                        pi.Description, 
+                        po.UserId, 
+                        ps.Status
+                    FROM PropertyInfo pi
+                    JOIN PropertyStatus ps ON pi.PropertyId = ps.PropertyId
+                    JOIN PropertyOwner po ON pi.PropertyId = po.PropertyId;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     using (var reader = command.ExecuteReader())
@@ -229,11 +242,12 @@ namespace AliNedvizhimostApp.Services
                         while (reader.Read())
                         {
                             string title = reader.GetString(reader.GetOrdinal("Title"));
+                            string address = reader.GetString(reader.GetOrdinal("Address"));
                             properties.Add(new Property
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                 Title = title,
-                                Address = reader.GetString(reader.GetOrdinal("Address")),
+                                Address = address,
                                 Price = reader.GetDecimal(reader.GetOrdinal("Price")),
                                 Area = reader.GetDouble(reader.GetOrdinal("Area")),
                                 Rooms = reader.GetInt32(reader.GetOrdinal("Rooms")),
@@ -256,7 +270,21 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "SELECT Id, Title, Address, Price, Area, Rooms, Description, UserId, Status FROM Properties WHERE UserId = @UserId;";
+                string sql = @"
+                    SELECT 
+                        pi.PropertyId AS Id, 
+                        pi.Title, 
+                        pi.Address, 
+                        pi.Price, 
+                        pi.Area, 
+                        pi.Rooms, 
+                        pi.Description, 
+                        po.UserId, 
+                        ps.Status
+                    FROM PropertyInfo pi
+                    JOIN PropertyStatus ps ON pi.PropertyId = ps.PropertyId
+                    JOIN PropertyOwner po ON pi.PropertyId = po.PropertyId
+                    WHERE po.UserId = @UserId;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@UserId", userId);
@@ -289,8 +317,11 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "INSERT INTO Properties (Title, Address, Price, Area, Rooms, Description, UserId, Status) VALUES (@Title, @Address, @Price, @Area, @Rooms, @Description, @UserId, @Status);";
-                using (var command = new SqlCommand(sql, connection))
+
+                // Insert into PropertyInfo
+                string insertPropertyInfoSql = "INSERT INTO PropertyInfo (Title, Address, Price, Area, Rooms, Description) VALUES (@Title, @Address, @Price, @Area, @Rooms, @Description); SELECT SCOPE_IDENTITY();";
+                int propertyId;
+                using (var command = new SqlCommand(insertPropertyInfoSql, connection))
                 {
                     command.Parameters.AddWithValue("@Title", property.Title);
                     command.Parameters.AddWithValue("@Address", property.Address);
@@ -298,16 +329,25 @@ namespace AliNedvizhimostApp.Services
                     command.Parameters.AddWithValue("@Area", property.Area);
                     command.Parameters.AddWithValue("@Rooms", property.Rooms);
                     command.Parameters.AddWithValue("@Description", property.Description);
-                    command.Parameters.AddWithValue("@UserId", property.UserId);
+                    propertyId = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Insert into PropertyStatus
+                string insertPropertyStatusSql = "INSERT INTO PropertyStatus (PropertyId, Status, LastUpdatedDate) VALUES (@PropertyId, @Status, GETDATE());";
+                using (var command = new SqlCommand(insertPropertyStatusSql, connection))
+                {
+                    command.Parameters.AddWithValue("@PropertyId", propertyId);
                     command.Parameters.AddWithValue("@Status", property.Status);
-                    try
-                    {
-                        command.ExecuteNonQuery();
-                    }
-                    catch (SqlException)
-                    {
-                        throw;
-                    }
+                    command.ExecuteNonQuery();
+                }
+
+                // Insert into PropertyOwner
+                string insertPropertyOwnerSql = "INSERT INTO PropertyOwner (PropertyId, UserId) VALUES (@PropertyId, @UserId);";
+                using (var command = new SqlCommand(insertPropertyOwnerSql, connection))
+                {
+                    command.Parameters.AddWithValue("@PropertyId", propertyId);
+                    command.Parameters.AddWithValue("@UserId", property.UserId);
+                    command.ExecuteNonQuery();
                 }
             }
         }
@@ -317,14 +357,14 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = @"UPDATE Properties SET 
+                string sql = @"UPDATE PropertyInfo SET 
                                 Title = @Title, 
                                 Address = @Address, 
                                 Price = @Price, 
                                 Area = @Area, 
                                 Rooms = @Rooms, 
                                 Description = @Description
-                             WHERE Id = @Id;";
+                             WHERE PropertyId = @Id;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@Id", property.Id);
@@ -351,7 +391,7 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "UPDATE Properties SET Status = @Status WHERE Id = @PropertyId;";
+                string sql = "UPDATE PropertyStatus SET Status = @Status, LastUpdatedDate = GETDATE() WHERE PropertyId = @PropertyId;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@Status", newStatus);
@@ -441,8 +481,8 @@ namespace AliNedvizhimostApp.Services
                 string sql = @"
                     SELECT 
                         m.PropertyId,
-                        p.Title AS PropertyTitle,
-                        p.Address AS PropertyAddress,
+                        pi.Title AS PropertyTitle,
+                        pi.Address AS PropertyAddress,
                         CASE 
                             WHEN m.SenderId = @UserId THEN m.ReceiverId 
                             ELSE m.SenderId 
@@ -451,10 +491,10 @@ namespace AliNedvizhimostApp.Services
                         u.LastName AS OtherUserLastName,
                         MAX(m.Timestamp) AS LastMessageTimestamp
                     FROM Messages m
-                    JOIN Properties p ON m.PropertyId = p.Id
+                    JOIN PropertyInfo pi ON m.PropertyId = pi.PropertyId
                     JOIN Users u ON u.UserId = CASE WHEN m.SenderId = @UserId THEN m.ReceiverId ELSE m.SenderId END
                     WHERE m.SenderId = @UserId OR m.ReceiverId = @UserId
-                    GROUP BY m.PropertyId, p.Title, p.Address, 
+                    GROUP BY m.PropertyId, pi.Title, pi.Address, 
                              CASE WHEN m.SenderId = @UserId THEN m.ReceiverId ELSE m.SenderId END,
                              u.FirstName, u.LastName
                     ORDER BY LastMessageTimestamp DESC;
@@ -516,7 +556,21 @@ namespace AliNedvizhimostApp.Services
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                string sql = "SELECT Id, Title, Address, Price, Area, Rooms, Description, UserId, Status FROM Properties WHERE Id = @PropertyId;";
+                string sql = @"
+                    SELECT 
+                        pi.PropertyId AS Id, 
+                        pi.Title, 
+                        pi.Address, 
+                        pi.Price, 
+                        pi.Area, 
+                        pi.Rooms, 
+                        pi.Description, 
+                        po.UserId, 
+                        ps.Status
+                    FROM PropertyInfo pi
+                    JOIN PropertyStatus ps ON pi.PropertyId = ps.PropertyId
+                    JOIN PropertyOwner po ON pi.PropertyId = po.PropertyId
+                    WHERE pi.PropertyId = @PropertyId;";
                 using (var command = new SqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@PropertyId", propertyId);

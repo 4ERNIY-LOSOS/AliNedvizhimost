@@ -17,7 +17,13 @@ namespace AliNedvizhimostApp.ViewModels
             {
                 _selectedProperty = value;
                 OnPropertyChanged(nameof(SelectedProperty));
+                OnPropertyChanged(nameof(IsContactSellerButtonVisible)); // Notify that this property has changed
             }
+        }
+
+        public bool IsContactSellerButtonVisible
+        {
+            get => _appViewModel.CurrentUser != null && _appViewModel.CurrentUser.UserId != SelectedProperty.UserId;
         }
 
         public ICommand GoBackCommand { get; }
